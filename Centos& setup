@@ -1,0 +1,9 @@
+yum whatprovides ifconfig
+yum install net-tools -y
+yum install wget -y
+yum install tree -y
+yum install nano -y
+yum install git -y
+yum update -y
+yum install java-11-openjdk -y
+
