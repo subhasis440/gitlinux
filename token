@@ -4,3 +4,7 @@ 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
 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
 
 git token
+
+
+git remote -v
+git remote set-url origin git@github.com:USERNAME/REPONAME.git
