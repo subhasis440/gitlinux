@@ -1,0 +1,8 @@
+apt install python3-pip
+
+apt install python3-virtualenv
+
+virtualenv -p python3.10 env
+
+source env/bin/activate
+deactivate
