@@ -7,3 +7,10 @@ yum install git -y
 yum update -y
 yum install java-11-openjdk -y
 
+
+
+Password less SSH
+
+ssh-keygen -t rsa
+ssh-copy-id root@192.168.0.0
+ssh root@192.168.0.0
