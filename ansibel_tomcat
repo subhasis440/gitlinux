@@ -1,0 +1,105 @@
+- name: Play 1 - Install Tomcat
+  hosts: tomcat-server
+  become: yes
+  roles:
+    - tomcat
+
+- name: Play 2 - Python Install
+  hosts: tomcat-server
+  become: yes
+  tasks:
+
+    - name: Install Python 3.6
+      yum:
+        name: python36
+        state: present
+      tags: python-install
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: present
+      tags: httpd-install
+    - name: Install pip
+      yum:
+        name: python-pip
+        update_cache: yes
+        state: present
+      tags: pip-install
+
+    - name: Install boto3 and botocore with pip3 module
+      pip:
+        name:
+          - boto
+          - boto3
+          - botocore
+        executable: pip
+      tags: boto-lib-install
+
+
+
+    - name: alternatives
+      alternatives:
+        name: python
+        link: /usr/bin/python3.6
+        path: /usr/bin/python3
+      tags: python-alternatives
+
+
+- name: Play 3 - Python library install and copying of War file
+  hosts: tomcat-server
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  tasks:
+    - name: Create a Tomcat Directory
+      file:
+        path: /opt/tomcat10
+        owner: root
+        group: root
+        mode: 777
+        recurse: yes
+
+    - name: download tomcat server packages
+      get_url:
+        url: https://dlcdn.apache.org/tomcat/tomcat-10/v10.0.22/bin/apache-tomcat-10.0.22.tar.gz
+        dest: /opt/tomcat10
+    - name: download & unarchive tomcat10
+      ansible.builtin.unarchive:
+        src: https://dlcdn.apache.org/tomcat/tomcat-10/v10.0.22/bin/apache-tomcat-10.0.22.tar.gz
+        dest: /opt/tomcat10
+        owner: root
+        group: root
+        mode: 777
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+
+
+    - name: start tomcat services
+      shell: nohup /opt/tomcat10/bin/startup.sh
+
+    - name: shut tomcat services
+      command: nohup /opt/tomcat10/bin/shutdown.sh
+
+    - name: copy the war file
+      ansible.builtin.copy:
+        src: /home/subh/jenkins/workspace/ansiblemaven/webapp/target/webapp.war
+        dest: /opt/tomcat10/webapps/webapp.war
+        owner: root
+        group: root
+        remote_src: yes
+      tags: copy-war
+
+- name: Play 4 - Start Tomcat Servers
+  hosts: tomcat-server
+  become: yes
+  become_user: root
+  tasks:
+          #- name: shut tomcat
+          #command: nohup sh /etc/tomcat/bin/shutdown.sh
+    - name: start tomcat
+      command: nohup /opt/tomcat10/bin/startup.sh
+      tags: start-tomcat
+    - name: Reload apache
+      service:
+        name: httpd
+        state: reloaded
