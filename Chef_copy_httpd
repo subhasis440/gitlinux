@@ -1,0 +1,13 @@
+package 'httpd' do
+  action :install
+end
+
+bash "backup source folder" do
+code <<-EOL
+cp -RT /home/subh/html/ /var/www/html/
+EOL
+end
+
+service 'httpd' do
+  action :start
+end
